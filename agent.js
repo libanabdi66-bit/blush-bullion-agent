@@ -56,24 +56,21 @@ function loadAllProducts() {
   const products = [];
 
   if (fileExists("products.json")) {
-    const manualProducts = readJson("products.json").map((p) =>
-      normalizeProduct(p, "products.json")
+    products.push(
+      ...readJson("products.json").map((p) => normalizeProduct(p, "products.json"))
     );
-    products.push(...manualProducts);
   }
 
   if (fileExists("autods_products.json")) {
-    const autodsProducts = readJson("autods_products.json").map((p) =>
-      normalizeProduct(p, "AutoDS")
+    products.push(
+      ...readJson("autods_products.json").map((p) => normalizeProduct(p, "AutoDS"))
     );
-    products.push(...autodsProducts);
   }
 
   if (fileExists("tiktok_products.json")) {
-    const tiktokProducts = readJson("tiktok_products.json").map((p) =>
-      normalizeProduct(p, "TikTok")
+    products.push(
+      ...readJson("tiktok_products.json").map((p) => normalizeProduct(p, "TikTok"))
     );
-    products.push(...tiktokProducts);
   }
 
   return products;
@@ -93,14 +90,20 @@ function calculateTrendBoost(product) {
   let trendBoost = 0;
 
   if (product.trendScore >= 90) trendBoost += 5;
-  if (product.category === "Lips" || product.category === "Lashes") {
-    trendBoost += 3;
-  }
-  if (product.impulseBuyScore >= 85) {
-    trendBoost += 2;
-  }
+  if (product.category === "Lips" || product.category === "Lashes") trendBoost += 3;
+  if (product.impulseBuyScore >= 85) trendBoost += 2;
 
   return trendBoost;
+}
+
+function isStrongWinner(scoredProduct) {
+  return (
+    scoredProduct.profit >= 10 &&
+    scoredProduct.marginPercent >= 60 &&
+    scoredProduct.totalScore >= 80 &&
+    scoredProduct.trendScore >= 88 &&
+    scoredProduct.competitionScore <= 75
+  );
 }
 
 function calculateProductScore(product) {
@@ -123,37 +126,34 @@ function calculateProductScore(product) {
   const trendBoost = calculateTrendBoost(product);
   const finalScore = round(baseScore + trendBoost);
 
-  let verdict = "Skip";
-
-  if (STRICT_MODE) {
-    if (
-      profit >= 10 &&
-      marginPercent >= 65 &&
-      finalScore >= 80 &&
-      product.trendScore >= 88 &&
-      product.competitionScore <= 75
-    ) {
-      verdict = "Strong Winner";
-    } else if (
-      profit >= 8 &&
-      marginPercent >= 60 &&
-      finalScore >= 75
-    ) {
-      verdict = "Test Soon";
-    } else if (finalScore >= 65) {
-      verdict = "Maybe";
-    }
-  } else {
-    if (finalScore >= 85) verdict = "Strong Winner";
-    else if (finalScore >= 75) verdict = "Test Soon";
-    else if (finalScore >= 65) verdict = "Maybe";
-  }
-
-  return {
+  const scoredProduct = {
     ...product,
     profit,
     marginPercent,
-    totalScore: finalScore,
+    totalScore: finalScore
+  };
+
+  let verdict = "Skip";
+
+  if (STRICT_MODE) {
+    if (isStrongWinner(scoredProduct)) {
+      verdict = "Strong Winner";
+    } else if (scoredProduct.totalScore >= 75) {
+      verdict = "Test Soon";
+    } else if (scoredProduct.totalScore >= 65) {
+      verdict = "Maybe";
+    } else {
+      verdict = "Skip";
+    }
+  } else {
+    if (scoredProduct.totalScore >= 85) verdict = "Strong Winner";
+    else if (scoredProduct.totalScore >= 75) verdict = "Test Soon";
+    else if (scoredProduct.totalScore >= 65) verdict = "Maybe";
+    else verdict = "Skip";
+  }
+
+  return {
+    ...scoredProduct,
     verdict
   };
 }
@@ -170,6 +170,92 @@ function getWinners(products) {
 
 function getTestSoon(products) {
   return products.filter((p) => p.verdict === "Test Soon");
+}
+
+function getBenefitBullets(product) {
+  const bullets = [];
+
+  if (product.category === "Lips") {
+    bullets.push("Glossy, fuller-looking finish");
+    bullets.push("Perfect for quick beauty content");
+    bullets.push("Easy add-to-cart impulse buy");
+  } else if (product.category === "Lashes") {
+    bullets.push("Fast beauty upgrade in minutes");
+    bullets.push("Beginner-friendly glam result");
+    bullets.push("High visual impact for short-form video");
+  } else if (product.category === "Skincare") {
+    bullets.push("Spa-like routine at home");
+    bullets.push("Aesthetic self-care appeal");
+    bullets.push("Strong gifting and routine potential");
+  } else {
+    bullets.push("Easy trend-led beauty buy");
+    bullets.push("Strong visual appeal");
+    bullets.push("Great for social content");
+  }
+
+  return bullets;
+}
+
+function generateShortSubtitle(product) {
+  if (product.category === "Lips") return "Glossy, viral, handbag-ready.";
+  if (product.category === "Lashes") return "Fast glam with high visual payoff.";
+  if (product.category === "Skincare") return "Aesthetic self-care that feels premium.";
+  return "Trend-led beauty with everyday appeal.";
+}
+
+function generateDescription(product) {
+  const bullets = getBenefitBullets(product);
+
+  return `Meet ${product.name} — a trend-led ${product.category.toLowerCase()} pick selected by the Blush & Bullion AI agent.
+
+Designed for beauty lovers who want results that look luxe without the high-end price tag, this product stands out for its visual appeal, impulse-buy power, and strong content potential.
+
+Why you'll love it:
+- ${bullets[0]}
+- ${bullets[1]}
+- ${bullets[2]}
+
+Perfect for customers who love affordable luxury, polished routines, and products that feel made for TikTok-worthy moments.`;
+}
+
+function generateTikTokHooks(product) {
+  return [
+    `This ${product.category.toLowerCase()} product is too good to stay underrated…`,
+    `POV: you found the beauty product everyone will ask you about`,
+    `This might be the prettiest ${product.category.toLowerCase()} find in my routine`
+  ];
+}
+
+function generateTikTokCaption(product) {
+  return `Obsessed with ${product.name} ✨ Affordable luxury energy without the luxury price. #BeautyFinds #TikTokMadeMeBuyIt #BlushAndBullion #${product.category}`;
+}
+
+function generateProductTitle(product) {
+  return `${product.name} | Blush & Bullion`;
+}
+
+function generateContentAngle(product) {
+  if (product.category === "Lips") return "before/after lip look";
+  if (product.category === "Lashes") return "quick glam transformation";
+  if (product.category === "Skincare") return "self-care routine reveal";
+  return "viral beauty demo";
+}
+
+function buildContentPlan(products) {
+  return products.map((product) => ({
+    name: product.name,
+    category: product.category,
+    verdict: product.verdict,
+    title: generateProductTitle(product),
+    subtitle: generateShortSubtitle(product),
+    description: generateDescription(product),
+    bullets: getBenefitBullets(product),
+    tiktokHooks: generateTikTokHooks(product),
+    tiktokCaption: generateTikTokCaption(product),
+    contentAngle: generateContentAngle(product),
+    priceSuggestion: `£${product.sellPrice}`,
+    source: product.source
+  }));
 }
 
 function generateReport(products) {
@@ -211,100 +297,9 @@ Generated: ${new Date().toISOString()}
   return report;
 }
 
-async function createShopifyProduct(product) {
-  if (!SHOPIFY_STORE_URL || !SHOPIFY_ADMIN_TOKEN) {
-    throw new Error("Missing SHOPIFY_STORE_URL or SHOPIFY_ADMIN_TOKEN");
-  }
-
-  const query = `
-    mutation productCreate($input: ProductCreateInput!) {
-      productCreate(product: $input) {
-        product {
-          id
-          title
-          handle
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const description = product.description || `${product.name} selected by Blush & Bullion strict product agent.`;
-
-  const variables = {
-    input: {
-      title: product.name,
-      descriptionHtml: `<p>${description}</p>`,
-      productType: product.category,
-      vendor: "Blush & Bullion",
-      tags: [
-        "AI Agent",
-        "Winning Product",
-        product.verdict,
-        product.category,
-        product.source
-      ]
-    }
-  };
-
-  const response = await fetch(
-    `https://${SHOPIFY_STORE_URL}/admin/api/2026-04/graphql.json`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Shopify-Access-Token": SHOPIFY_ADMIN_TOKEN
-      },
-      body: JSON.stringify({ query, variables })
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Shopify API error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  const result = data.data?.productCreate;
-
-  if (result?.userErrors?.length) {
-    throw new Error(
-      `Shopify user error: ${result.userErrors.map((e) => e.message).join(", ")}`
-    );
-  }
-
-  return result?.product || null;
-}
-
-async function publishWinnersToShopify(winners) {
-  if (!SHOPIFY_STORE_URL || !SHOPIFY_ADMIN_TOKEN) {
-    console.log("\nSkipping Shopify publish: no SHOPIFY_ADMIN_TOKEN set.\n");
-    return;
-  }
-
-  console.log(`\nPublishing ${winners.length} strong winners to Shopify...\n`);
-
-  for (const winner of winners) {
-    try {
-      const created = await createShopifyProduct(winner);
-      console.log(`Created Shopify product: ${created?.title || winner.name}`);
-    } catch (error) {
-      console.error(`Failed to publish ${winner.name}: ${error.message}`);
-    }
-  }
-}
-
 function printSummary(products) {
   console.log("\n=== BLUSH & BULLION FULL AUTO AGENT ===\n");
-
-  if (SHOPIFY_STORE_URL) {
-    console.log(`Store: ${SHOPIFY_STORE_URL}`);
-  } else {
-    console.log("Store: not set");
-  }
-
+  console.log(`Store: ${SHOPIFY_STORE_URL || "not set"}`);
   console.log(`Strict Mode: ${STRICT_MODE ? "ON" : "OFF"}`);
   console.log(`Products Loaded: ${products.length}\n`);
 
@@ -315,20 +310,14 @@ function printSummary(products) {
     console.log(`   Cost Price: £${p.costPrice}`);
     console.log(`   Profit: £${p.profit}`);
     console.log(`   Margin: ${p.marginPercent}%`);
-    console.log(`   Trend Score: ${p.trendScore}`);
-    console.log(`   Competition Score: ${p.competitionScore}`);
-    console.log(`   Brand Fit Score: ${p.brandFitScore}`);
     console.log(`   Final Score: ${p.totalScore}`);
     console.log(`   Verdict: ${p.verdict}`);
     console.log("");
   });
 
-  const winners = getWinners(products);
-  const testSoon = getTestSoon(products);
-
   console.log("=== SUMMARY ===");
-  console.log(`Strong Winners Found: ${winners.length}`);
-  console.log(`Test Soon Products: ${testSoon.length}`);
+  console.log(`Strong Winners Found: ${getWinners(products).length}`);
+  console.log(`Test Soon Products: ${getTestSoon(products).length}`);
 }
 
 async function runAgent() {
@@ -341,16 +330,20 @@ async function runAgent() {
 
   const ranked = rankProducts(rawProducts);
   const winners = getWinners(ranked);
+  const contentPlan = buildContentPlan(
+    ranked.filter((p) => p.verdict === "Strong Winner" || p.verdict === "Test Soon")
+  );
   const report = generateReport(ranked);
 
   writeJson("winners.json", winners);
+  writeJson("content_plan.json", contentPlan);
   writeText("report.md", report);
 
   printSummary(ranked);
-  await publishWinnersToShopify(winners);
 
   console.log("\nSaved:");
   console.log("- winners.json");
+  console.log("- content_plan.json");
   console.log("- report.md\n");
 }
 
