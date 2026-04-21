@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Hydrating Lip Oil",
+    "category": "Lips",
+    "sellPrice": 14.99,
+    "costPrice": 3.8,
+    "trendScore": 91,
+    "competitionScore": 62,
+    "aestheticScore": 90,
+    "brandFitScore": 95,
+    "impulseBuyScore": 87
+  },
+  {
+    "name": "DIY Lash Cluster Kit",
+    "category": "Lashes",
+    "sellPrice": 19.99,
+    "costPrice": 6.2,
+    "trendScore": 93,
+    "competitionScore": 78,
+    "aestheticScore": 88,
+    "brandFitScore": 92,
+    "impulseBuyScore": 84
+  },
+  {
+    "name": "Ice Face Roller",
+    "category": "Skincare",
+    "sellPrice": 11.99,
+    "costPrice": 4.4,
+    "trendScore": 74,
+    "competitionScore": 70,
+    "aestheticScore": 76,
+    "brandFitScore": 72,
+    "impulseBuyScore": 69
+  },
+  {
+    "name": "Peptide Lip Treatment",
+    "category": "Lips",
+    "sellPrice": 17.99,
+    "costPrice": 5.5,
+    "trendScore": 88,
+    "competitionScore": 58,
+    "aestheticScore": 91,
+    "brandFitScore": 94,
+    "impulseBuyScore": 83
+  },
+  {
+    "name": "Heated Lash Curler",
+    "category": "Lashes",
+    "sellPrice": 16.99,
+    "costPrice": 6.8,
+    "trendScore": 82,
+    "competitionScore": 66,
+    "aestheticScore": 80,
+    "brandFitScore": 85,
+    "impulseBuyScore": 78
+  }
+]
