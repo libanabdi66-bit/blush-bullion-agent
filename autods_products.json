@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "name": "Viral Lip Plumping Gloss",
+    "category": "Lips",
+    "sellPrice": 13.99,
+    "costPrice": 3.2,
+    "trendScore": 95,
+    "competitionScore": 62,
+    "aestheticScore": 94,
+    "brandFitScore": 96,
+    "impulseBuyScore": 91
+  },
+  {
+    "name": "Self Adhesive Lash Kit",
+    "category": "Lashes",
+    "sellPrice": 19.99,
+    "costPrice": 6.0,
+    "trendScore": 93,
+    "competitionScore": 68,
+    "aestheticScore": 89,
+    "brandFitScore": 94,
+    "impulseBuyScore": 87
+  },
+  {
+    "name": "Hydrating Lip Sleeping Mask",
+    "category": "Skincare",
+    "sellPrice": 15.99,
+    "costPrice": 4.5,
+    "trendScore": 90,
+    "competitionScore": 70,
+    "aestheticScore": 92,
+    "brandFitScore": 93,
+    "impulseBuyScore": 85
+  },
+  {
+    "name": "Electric Blackhead Remover Vacuum",
+    "category": "Skincare",
+    "sellPrice": 21.99,
+    "costPrice": 9.0,
+    "trendScore": 88,
+    "competitionScore": 75,
+    "aestheticScore": 80,
+    "brandFitScore": 82,
+    "impulseBuyScore": 78
+  }
+]
