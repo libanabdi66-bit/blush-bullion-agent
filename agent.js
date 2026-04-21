@@ -1,83 +1,22 @@
-// blush-bullion-agent/agent.js
+const fs = require("fs");
 
 const SHOPIFY_STORE_URL = process.env.SHOPIFY_STORE_URL || "";
 const SHOPIFY_CLIENT_ID = process.env.SHOPIFY_CLIENT_ID || "";
 const SHOPIFY_CLIENT_SECRET = process.env.SHOPIFY_CLIENT_SECRET || "";
 
-/**
- * Product Agent for Blush & Bullion
- * - Scores beauty/skincare products
- * - Ranks them by store fit, trend potential, and profit
- * - Uses sample data for now
- *
- * Secrets stay in environment variables.
- */
-
-const sampleProducts = [
-  {
-    name: "Hydrating Lip Oil",
-    category: "Lips",
-    sellPrice: 14.99,
-    costPrice: 3.8,
-    trendScore: 91,
-    competitionScore: 62,
-    aestheticScore: 90,
-    brandFitScore: 95,
-    impulseBuyScore: 87,
-  },
-  {
-    name: "DIY Lash Cluster Kit",
-    category: "Lashes",
-    sellPrice: 19.99,
-    costPrice: 6.2,
-    trendScore: 93,
-    competitionScore: 78,
-    aestheticScore: 88,
-    brandFitScore: 92,
-    impulseBuyScore: 84,
-  },
-  {
-    name: "Ice Face Roller",
-    category: "Skincare",
-    sellPrice: 11.99,
-    costPrice: 4.4,
-    trendScore: 74,
-    competitionScore: 70,
-    aestheticScore: 76,
-    brandFitScore: 72,
-    impulseBuyScore: 69,
-  },
-  {
-    name: "Peptide Lip Treatment",
-    category: "Lips",
-    sellPrice: 17.99,
-    costPrice: 5.5,
-    trendScore: 88,
-    competitionScore: 58,
-    aestheticScore: 91,
-    brandFitScore: 94,
-    impulseBuyScore: 83,
-  },
-  {
-    name: "Heated Lash Curler",
-    category: "Lashes",
-    sellPrice: 16.99,
-    costPrice: 6.8,
-    trendScore: 82,
-    competitionScore: 66,
-    aestheticScore: 80,
-    brandFitScore: 85,
-    impulseBuyScore: 78,
-  },
-];
-
 function round(num) {
   return Math.round(num * 100) / 100;
+}
+
+function loadProducts() {
+  const raw = fs.readFileSync("./products.json", "utf8");
+  return JSON.parse(raw);
 }
 
 function calculateMargin(sellPrice, costPrice) {
   const profit = sellPrice - costPrice;
   const marginPercent = sellPrice > 0 ? (profit / sellPrice) * 100 : 0;
+
   return {
     profit: round(profit),
     marginPercent: round(marginPercent),
@@ -91,29 +30,40 @@ function calculateProductScore(product) {
   );
 
   const marginScore = Math.min(marginPercent, 100);
-
-  // Higher competition lowers score
   const competitionPenalty = 100 - product.competitionScore;
 
-  const totalScore =
+  const baseScore =
     product.trendScore * 0.24 +
     product.brandFitScore * 0.22 +
-    marginScore * 0.20 +
+    marginScore * 0.2 +
     product.aestheticScore * 0.14 +
     product.impulseBuyScore * 0.12 +
     competitionPenalty * 0.08;
 
+  let trendBoost = 0;
+
+  if (product.trendScore >= 90) trendBoost += 5;
+  if (product.category === "Lips" || product.category === "Lashes") {
+    trendBoost += 3;
+  }
+
+  const finalScore = round(baseScore + trendBoost);
+
   let verdict = "Skip";
-  if (totalScore >= 85) verdict = "Strong Winner";
-  else if (totalScore >= 75) verdict = "Test Soon";
-  else if (totalScore >= 65) verdict = "Maybe";
-  else verdict = "Skip";
+
+  if (profit >= 10 && marginPercent >= 65 && finalScore >= 80) {
+    verdict = "Strong Winner";
+  } else if (profit >= 8 && marginPercent >= 60 && finalScore >= 75) {
+    verdict = "Test Soon";
+  } else if (finalScore >= 65) {
+    verdict = "Maybe";
+  }
 
   return {
     ...product,
     profit,
     marginPercent,
-    totalScore: round(totalScore),
+    totalScore: finalScore,
     verdict,
   };
 }
@@ -125,11 +75,9 @@ function rankProducts(products) {
 }
 
 function printSummary(products) {
-  console.log("\n=== BLUSH & BULLION PRODUCT AGENT ===\n");
+  console.log("\n=== BLUSH & BULLION STRICT PRODUCT AGENT ===\n");
 
-  if (!SHOPIFY_STORE_URL) {
-    console.log("Note: SHOPIFY_STORE_URL is not set.");
-  } else {
+  if (SHOPIFY_STORE_URL) {
     console.log(`Store: ${SHOPIFY_STORE_URL}`);
   }
 
@@ -140,24 +88,34 @@ function printSummary(products) {
   console.log("\nTop ranked products:\n");
 
   products.forEach((p, index) => {
-    console.log(
-      `${index + 1}. ${p.name} [${p.category}]`
-    );
+    console.log(`${index + 1}. ${p.name} [${p.category}]`);
     console.log(`   Sell Price: £${p.sellPrice}`);
     console.log(`   Cost Price: £${p.costPrice}`);
     console.log(`   Profit: £${p.profit}`);
     console.log(`   Margin: ${p.marginPercent}%`);
-    console.log(`   Score: ${p.totalScore}`);
+    console.log(`   Trend Score: ${p.trendScore}`);
+    console.log(`   Competition Score: ${p.competitionScore}`);
+    console.log(`   Brand Fit Score: ${p.brandFitScore}`);
+    console.log(`   Final Score: ${p.totalScore}`);
     console.log(`   Verdict: ${p.verdict}`);
     console.log("");
   });
 
-  const winners = products.filter((p) => p.verdict === "Strong Winner");
-  console.log(`Strong Winners Found: ${winners.length}`);
+  const strongWinners = products.filter((p) => p.verdict === "Strong Winner");
+  const testSoon = products.filter((p) => p.verdict === "Test Soon");
+  const maybe = products.filter((p) => p.verdict === "Maybe");
+  const skip = products.filter((p) => p.verdict === "Skip");
+
+  console.log("=== SUMMARY ===");
+  console.log(`Strong Winners Found: ${strongWinners.length}`);
+  console.log(`Test Soon Products: ${testSoon.length}`);
+  console.log(`Maybe Products: ${maybe.length}`);
+  console.log(`Skipped Products: ${skip.length}`);
 }
 
 function runAgent() {
-  const ranked = rankProducts(sampleProducts);
+  const products = loadProducts();
+  const ranked = rankProducts(products);
   printSummary(ranked);
 }
 
