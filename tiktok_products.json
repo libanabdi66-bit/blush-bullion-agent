@@ -1,1 +1,57 @@
-[]
+[
+  {
+    "name": "Jelly Lip Stain Peel Off",
+    "category": "Lips",
+    "sellPrice": 12.99,
+    "costPrice": 2.8,
+    "trendScore": 96,
+    "competitionScore": 65,
+    "aestheticScore": 95,
+    "brandFitScore": 97,
+    "impulseBuyScore": 92
+  },
+  {
+    "name": "Magnetic Lash Kit",
+    "category": "Lashes",
+    "sellPrice": 18.99,
+    "costPrice": 6.5,
+    "trendScore": 94,
+    "competitionScore": 70,
+    "aestheticScore": 90,
+    "brandFitScore": 95,
+    "impulseBuyScore": 88
+  },
+  {
+    "name": "Ice Globes Facial Set",
+    "category": "Skincare",
+    "sellPrice": 22.99,
+    "costPrice": 8.2,
+    "trendScore": 91,
+    "competitionScore": 72,
+    "aestheticScore": 93,
+    "brandFitScore": 90,
+    "impulseBuyScore": 85
+  },
+  {
+    "name": "LED Lip Plumper Device",
+    "category": "Lips",
+    "sellPrice": 24.99,
+    "costPrice": 9.5,
+    "trendScore": 93,
+    "competitionScore": 68,
+    "aestheticScore": 92,
+    "brandFitScore": 96,
+    "impulseBuyScore": 87
+  },
+  {
+    "name": "Heatless Curling Ribbon Set",
+    "category": "Hair",
+    "sellPrice": 14.99,
+    "costPrice": 3.9,
+    "trendScore": 90,
+    "competitionScore": 60,
+    "aestheticScore": 88,
+    "brandFitScore": 85,
+    "impulseBuyScore": 89
+  }
+]
